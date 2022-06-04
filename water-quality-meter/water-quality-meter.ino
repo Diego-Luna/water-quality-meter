@@ -3,6 +3,10 @@
 #include <LoRa.h>
 
 char  send_values[244] = {0};
+char  value_pH[3] = {0};
+char  value_TDS[5] = {0};
+char  value_Turviedad[5] = {0};
+char  value_Water_Tem[5] = {0};
 
 // pH
 #define SensorPin A0            //pH meter Analog output to Arduino Analog Input 0
@@ -13,6 +17,7 @@ char  send_values[244] = {0};
 #define ArrayLenth  40    //times of collection
 int pHArray[ArrayLenth];   //Store the average value of the sensor feedback
 int pHArrayIndex = 0;
+float pHValue, voltage;
 
 // Turviedad
 int sensorValue_turviedad = 0;
@@ -62,12 +67,58 @@ void loop(void)
   delay(3000);
 }
 
+void  ft_send_data()
+{
+  sprintf(value_pH, "%f", pHValue);
+  sprintf(value_TDS, "%f", tdsValue);
+  sprintf(value_Turviedad, "%d", sensorValue_turviedad);
+  sprintf(value_Water_Tem, "%f", temperature);
+
+  ft_str_to_str(send_values, value_pH, 0);
+  ft_str_to_str(send_values, value_TDS, ft_strlen(send_values));
+  ft_str_to_str(send_values, value_Turviedad, ft_strlen(send_values));
+  ft_str_to_str(send_values, value_Water_Tem, ft_strlen(send_values));
+
+  Serial.print("--> send data: ");
+  Serial.println(send_values);
+
+  //  -- Send lora
+  LoRa.beginPacket();
+  LoRa.print(send_values);
+  LoRa.endPacket();
+
+}
+
+int  ft_strlen(char *str)
+{
+  int i = 0;
+
+  while (str[i])
+  {
+    i++;
+  }
+  return (i);
+}
+
+void  ft_str_to_str(char *str1, char *str2, int start_str)
+{
+  int ii = start_str;
+  int i = 0;
+  while (str2[i])
+  {
+    str1[ii] = str2[i];
+    ii++;
+    i++;
+  }
+  str1[ii] = '\0';
+}
+
 // --- Water temperature - DS18B20
 void ft_get_water_temperature()
 {
   Serial.print(" Requesting temperatures...");
   sensors.requestTemperatures(); // Send the command to get temperature readings
-  Seirial.println("DONE");
+  Serial.println("DONE");
   /********************************************************************/
   Serial.print("Temperature is: ");
   temperature = sensors.getTempCByIndex(0);
@@ -145,7 +196,7 @@ void  ft_get_ph()
 {
   static unsigned long samplingTime = millis();
   static unsigned long printTime = millis();
-  static float pHValue, voltage;
+  //  static float pHValue, voltage;
   if (millis() - samplingTime > samplingInterval)
   {
     pHArray[pHArrayIndex++] = analogRead(SensorPin);
