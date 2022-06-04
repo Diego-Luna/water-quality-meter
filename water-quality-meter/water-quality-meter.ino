@@ -1,10 +1,42 @@
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Modificar
+// Modify
+
+String Name  = "Diego Test 1"; // maximo 20 caracteres
+double position_x = 19.707085;
+double position_y = -98.460370;
+
+// El timpo es de 0 - 24
+int time_start = 14;
+int time_send_1 = 3;
+int time_send_2 = 8;
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 #include "ArduinoLowPower.h"
 
-//  Lora
+// -> Lora
 #include <SPI.h>
 #include <LoRa.h>
 
-// pH
+// -> Hora
+
+unsigned long myTime;
+unsigned long oldTime;
+unsigned long sleep_time;
+int horaTime;
+int hora;
+int minutos;
+int segundos;
+
+long day_ms = 86400000; // 86400000 milliseconds in a day
+long hour_ms = 3600000; // 3600000 milliseconds in an hour
+long minute_ms = 60000; // 60000 milliseconds in a minute
+long second_ms =  1000;
+
+bool on_start = false;
+
+// -> pH
 #define SensorPin A0            //pH meter Analog output to Arduino Analog Input 0
 #define Offset 0.00            //deviation compensate
 #define LED 13
@@ -15,11 +47,11 @@ int pHArray[ArrayLenth];   //Store the average value of the sensor feedback
 int pHArrayIndex = 0;
 float pHValue, voltage;
 
-// Turviedad
+// -> Turviedad
 int sensorValue_turviedad = 0;
 float voltage_turviedad = 0.0;
 
-// TDS
+// -> TDS
 #define TdsSensorPin A2
 #define VREF 5.0      // analog reference voltage(Volt) of the ADC
 #define SCOUNT  30           // sum of sample point
@@ -28,7 +60,7 @@ int analogBufferTemp[SCOUNT];
 int analogBufferIndex = 0, copyIndex = 0;
 float averageVoltage = 0, tdsValue = 0, temperature = 25;
 
-//  Water temperature
+// -> Water temperature
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #define ONE_WIRE_BUS 2
@@ -41,6 +73,7 @@ DallasTemperature sensors(&oneWire);
 
 void setup(void)
 {
+
   Serial.begin(9600);
   Serial.println("LoRa Sender - water quality meter");
 
@@ -52,17 +85,76 @@ void setup(void)
   pinMode(LED, OUTPUT);
   pinMode(TdsSensorPin, INPUT);
   sensors.begin();
+  horaTime = time_start;
 }
 
 void loop(void)
 {
+  ft_time();
   ft_get_water_temperature();
   ft_get_turviedad();
   ft_get_ph();
   ft_get_tds();
   ft_send_data();
-  LowPower.sleep(10000);
+  ft_time();
+  if (on_start == false)
+  {
+    on_start = true;
+    LowPower.sleep(10000);
+  } else {
+    delay(10000);
+  }
+  //  LowPower.sleep(10000);
+  //  delay(10000);
 }
+// --- Time
+void ft_time()
+{
+  //  unsigned long myTime;
+  //  unsigned long oldTime;
+  //  unsigned long sleep_time;
+  //  int horaTime;
+  //  int hora;
+  //  int minutos;
+  //  int segundos;
+  //
+  //  long day_ms = 86400000; // 86400000 milliseconds in a day
+  //  long hour_ms = 3600000; // 3600000 milliseconds in an hour
+  //  long minute_ms = 60000; // 60000 milliseconds in a minute
+  //  long second_ms =  1000;
+
+  //  int time_start = 14;
+  //  int time_send_1 = 12;
+  //  int time_send_2 = 24;
+
+  myTime = millis();
+
+  unsigned long int days = myTime  / day_ms ;                                //number of days
+  unsigned long int hours = (myTime % day_ms) / hour_ms;                       //the remainder from days division (in milliseconds) divided by hours, this gives the full hours
+  unsigned long int minutes = ((myTime % day_ms) % hour_ms) / minute_ms ;         //and so on...
+  unsigned long int seconds = (((myTime % day_ms) % hour_ms) % minute_ms) / second_ms;
+
+  horaTime += hours;
+
+  if (horaTime >= 24) horaTime = 0;
+
+
+  sleep_time = (time_send_2 - time_send_1) * hour_ms  - (2 * second_ms);
+
+  Serial.println();
+  Serial.print("--> Timepo : ");
+  Serial.print(time_send_2 - time_send_1);
+  Serial.print(" H, ");
+  Serial.print(sleep_time);
+  Serial.print(" ms, ");
+  Serial.print(seconds);
+  Serial.print(" s, ");
+  Serial.print(minutes);
+  Serial.print(" minutes.");
+  Serial.println();
+}
+
+// --- Lora
 
 void  ft_send_data()
 {
@@ -79,6 +171,8 @@ void  ft_send_data()
   String value_TDS = String(tdsValue, 0);
   String value_Turviedad = String(sensorValue_turviedad);
   String value_Water_Tem = String(temperature, 2);
+  String value_P_X = String(position_x, 6);
+  String value_P_Y = String(position_y, 6);
 
   Serial.println();
   Serial.print("->       data: ");
@@ -99,7 +193,8 @@ void  ft_send_data()
   Serial.print(",");
   Serial.println(value_Water_Tem);
 
-  send_values = value_pH + space;
+  send_values = Name + space + value_P_X + space + value_P_Y + space;
+  send_values = send_values + value_pH + space;
   send_values = send_values + value_TDS + space;
   send_values = send_values + value_Turviedad + space;
   send_values = send_values + value_Water_Tem + space;
@@ -112,30 +207,6 @@ void  ft_send_data()
   LoRa.print(send_values);
   LoRa.endPacket();
 
-}
-
-int  ft_strlen(char *str)
-{
-  int i = 0;
-
-  while (str[i])
-  {
-    i++;
-  }
-  return (i);
-}
-
-void  ft_str_to_str(char *str1, char *str2, int start_str)
-{
-  int ii = start_str;
-  int i = 0;
-  while (str2[i])
-  {
-    str1[ii] = str2[i];
-    ii++;
-    i++;
-  }
-  str1[ii] = '\0';
 }
 
 // --- Water temperature - DS18B20
