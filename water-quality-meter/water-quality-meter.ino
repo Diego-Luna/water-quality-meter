@@ -1,3 +1,5 @@
+#include "ArduinoLowPower.h"
+
 //  Lora
 #include <SPI.h>
 #include <LoRa.h>
@@ -59,7 +61,7 @@ void loop(void)
   ft_get_ph();
   ft_get_tds();
   ft_send_data();
-  delay(10000);
+  LowPower.sleep(10000);
 }
 
 void  ft_send_data()
