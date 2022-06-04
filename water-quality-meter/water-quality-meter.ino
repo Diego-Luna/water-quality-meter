@@ -2,12 +2,6 @@
 #include <SPI.h>
 #include <LoRa.h>
 
-char  send_values[244] = {0};
-char  value_pH[3] = {0};
-char  value_TDS[5] = {0};
-char  value_Turviedad[5] = {0};
-char  value_Water_Tem[5] = {0};
-
 // pH
 #define SensorPin A0            //pH meter Analog output to Arduino Analog Input 0
 #define Offset 0.00            //deviation compensate
@@ -64,20 +58,49 @@ void loop(void)
   ft_get_turviedad();
   ft_get_ph();
   ft_get_tds();
-  delay(3000);
+  ft_send_data();
+  delay(10000);
 }
 
 void  ft_send_data()
 {
-  sprintf(value_pH, "%f", pHValue);
-  sprintf(value_TDS, "%f", tdsValue);
-  sprintf(value_Turviedad, "%d", sensorValue_turviedad);
-  sprintf(value_Water_Tem, "%f", temperature);
+  //  char *space = ",";
+  String space = ",";
+  String send_values;
 
-  ft_str_to_str(send_values, value_pH, 0);
-  ft_str_to_str(send_values, value_TDS, ft_strlen(send_values));
-  ft_str_to_str(send_values, value_Turviedad, ft_strlen(send_values));
-  ft_str_to_str(send_values, value_Water_Tem, ft_strlen(send_values));
+  pHValue = 7.77;
+  tdsValue = 200;
+  sensorValue_turviedad = 300;
+  temperature = 25.0;
+
+  String value_pH = String(pHValue, 2);
+  String value_TDS = String(tdsValue, 0);
+  String value_Turviedad = String(sensorValue_turviedad);
+  String value_Water_Tem = String(temperature, 2);
+
+  Serial.println();
+  Serial.print("->       data: ");
+  Serial.print(pHValue);
+  Serial.print(",");
+  Serial.print(tdsValue);
+  Serial.print(",");
+  Serial.print(sensorValue_turviedad);
+  Serial.print(",");
+  Serial.println(temperature);
+
+  Serial.print("-> sting data: ");
+  Serial.print(value_pH);
+  Serial.print(",");
+  Serial.print(value_TDS);
+  Serial.print(",");
+  Serial.print(value_Turviedad);
+  Serial.print(",");
+  Serial.println(value_Water_Tem);
+
+  send_values = value_pH + space;
+  send_values = send_values + value_TDS + space;
+  send_values = send_values + value_Turviedad + space;
+  send_values = send_values + value_Water_Tem + space;
 
   Serial.print("--> send data: ");
   Serial.println(send_values);
