@@ -1,3 +1,9 @@
+//  Lora
+#include <SPI.h>
+#include <LoRa.h>
+
+char  send_values[244] = {0};
+
 // pH
 #define SensorPin A0            //pH meter Analog output to Arduino Analog Input 0
 #define Offset 0.00            //deviation compensate
@@ -34,11 +40,16 @@ DallasTemperature sensors(&oneWire);
 
 void setup(void)
 {
+  Serial.begin(9600);
+  Serial.println("LoRa Sender - water quality meter");
+
+  if (!LoRa.begin(915E6)) {
+    Serial.println("Starting LoRa failed!");
+    while (1);
+  }
+
   pinMode(LED, OUTPUT);
   pinMode(TdsSensorPin, INPUT);
-
-  Serial.begin(9600);
-  Serial.println("pH meter experiment!");    //Test the serial monitor
   sensors.begin();
 }
 
@@ -48,7 +59,7 @@ void loop(void)
   ft_get_turviedad();
   ft_get_ph();
   ft_get_tds();
-  delay(1000);
+  delay(3000);
 }
 
 // --- Water temperature - DS18B20
@@ -56,7 +67,7 @@ void ft_get_water_temperature()
 {
   Serial.print(" Requesting temperatures...");
   sensors.requestTemperatures(); // Send the command to get temperature readings
-  Serial.println("DONE");
+  Seirial.println("DONE");
   /********************************************************************/
   Serial.print("Temperature is: ");
   temperature = sensors.getTempCByIndex(0);
