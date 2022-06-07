@@ -3,8 +3,8 @@
 // Modify
 
 String Name  = "Diego Test 1"; // maximo 20 caracteres
-double position_x = 19.707085;
-double position_y = -98.460370;
+String position_x = "19.707085";
+String position_y = "-98.460370";
 
 // El timpo es de 0 - 24
 int time_start = 14;
@@ -171,8 +171,6 @@ void  ft_send_data()
   String value_TDS = String(tdsValue, 0);
   String value_Turviedad = String(sensorValue_turviedad);
   String value_Water_Tem = String(temperature, 2);
-  String value_P_X = String(position_x, 6);
-  String value_P_Y = String(position_y, 6);
 
   Serial.println();
   Serial.print("->       data: ");
@@ -193,7 +191,7 @@ void  ft_send_data()
   Serial.print(",");
   Serial.println(value_Water_Tem);
 
-  send_values = Name + space + value_P_X + space + value_P_Y + space;
+  send_values = Name + space + position_x + space + position_y + space;
   send_values = send_values + value_pH + space;
   send_values = send_values + value_TDS + space;
   send_values = send_values + value_Turviedad + space;
