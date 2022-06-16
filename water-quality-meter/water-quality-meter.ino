@@ -2,9 +2,10 @@
 // Modificar
 // Modify
 
-String Name  = "Diego Test 1"; // maximo 20 caracteres
+String Name  = "Diego_Test_1"; // maximo 20 caracteres, sin espacios
 String position_x = "19.707085";
 String position_y = "-98.460370";
+String Comunity_or_institution  = "EL_salto_GDL_MEX"; // maximo 20 caracteres, sin espacios
 
 // El timpo es de 0 - 24
 int time_start = 14;
