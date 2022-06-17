@@ -10,7 +10,7 @@ String Comunity_or_institution  = "EL_salto_GDL_MEX"; // maximo 20 caracteres, s
 // El timpo es de 0 - 24
 int time_start = 14;
 int time_send_1 = 3;
-int time_send_2 = 8;
+int time_send_2 = 20;
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -36,6 +36,8 @@ long minute_ms = 60000; // 60000 milliseconds in a minute
 long second_ms =  1000;
 
 bool on_start = false;
+
+byte time_status = 0;
 
 // -> pH
 #define SensorPin A0            //pH meter Analog output to Arduino Analog Input 0
@@ -140,7 +142,7 @@ void ft_time()
   if (horaTime >= 24) horaTime = 0;
 
 
-  sleep_time = (time_send_2 - time_send_1) * hour_ms  - (2 * second_ms);
+  sleep_time = ft_get_sleep_time()  - (2 * second_ms);
 
   Serial.println();
   Serial.print("--> Timepo : ");
@@ -153,6 +155,42 @@ void ft_time()
   Serial.print(minutes);
   Serial.print(" minutes.");
   Serial.println();
+}
+
+int ft_get_sleep_time()
+{
+  if (time_status == 0)
+  {
+    if (time_start <= time_send_1)
+    {
+      time_status = 1;
+      return (ft_hour_in_ms(time_start - time_send_1));
+    }
+    if (time_start <= time_send_2)
+    {
+      time_status = 2;
+      return (ft_hour_in_ms(time_start - time_send_2));
+    }
+    if (time_start > time_send_2)
+    {
+      time_status = 1;
+      return (ft_hour_in_ms((24 - time_start) + time_send_1));
+    }
+  }
+  else if (time_status == 1) //de 1 a 2
+  {
+    time_status = 2;
+    return (ft_hour_in_ms(time_start - time_send_2));
+  }
+  else if (time_status == 2) //de 2 a 1
+  {
+    time_status = 1;
+    return (ft_hour_in_ms((24 - time_send_2) + time_send_1));
+  }
+}
+
+int ft_hour_in_ms(int myHour) {
+  return (myHour * hour_ms);
 }
 
 // --- Lora
