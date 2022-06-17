@@ -10,7 +10,7 @@ String Comunity_or_institution  = "EL_salto_GDL_MEX"; // maximo 20 caracteres, s
 // El timpo es de 0 - 24
 int time_start = 14;
 int time_send_1 = 3;
-int time_send_2 = 20;
+int time_send_2 = 8;
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -55,18 +55,28 @@ int sensorValue_turviedad = 0;
 float voltage_turviedad = 0.0;
 
 // -> TDS
-#define TdsSensorPin A2
-#define VREF 5.0      // analog reference voltage(Volt) of the ADC
-#define SCOUNT  30           // sum of sample point
-int analogBuffer[SCOUNT];    // store the analog value in the array, read from ADC
-int analogBufferTemp[SCOUNT];
-int analogBufferIndex = 0, copyIndex = 0;
-float averageVoltage = 0, tdsValue = 0, temperature = 25;
+//#define TdsSensorPin A2
+//#define VREF 5.0      // analog reference voltage(Volt) of the ADC
+//#define SCOUNT  30           // sum of sample point
+//int analogBuffer[SCOUNT];    // store the analog value in the array, read from ADC
+//int analogBufferTemp[SCOUNT];
+//int analogBufferIndex = 0, copyIndex = 0;
+//float averageVoltage = 0, tdsValue = 0, temperature = 25;
+//#define SERIAL Serial
+#define sensorPin_tds A0
+
+int sensorValue = 0;
+float tdsValue = 0;
+float Voltage = 0;
+
+
 
 // -> Water temperature
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #define ONE_WIRE_BUS 2
+
+float temperature = 25;
 
 // Setup a oneWire instance to communicate with any OneWire devices
 // (not just Maxim/Dallas temperature ICs)
@@ -86,7 +96,7 @@ void setup(void)
   }
 
   pinMode(LED, OUTPUT);
-  pinMode(TdsSensorPin, INPUT);
+  //  pinMode(TdsSensorPin, INPUT);
   sensors.begin();
   horaTime = time_start;
 }
@@ -263,32 +273,12 @@ void ft_get_water_temperature()
 // --- TDS
 void ft_get_tds()
 {
-  static unsigned long analogSampleTimepoint = millis();
-  if (millis() - analogSampleTimepoint > 40U)  //every 40 milliseconds,read the analog value from the ADC
-  {
-    analogSampleTimepoint = millis();
-    analogBuffer[analogBufferIndex] = analogRead(TdsSensorPin);    //read the analog value and store into the buffer
-    analogBufferIndex++;
-    if (analogBufferIndex == SCOUNT)
-      analogBufferIndex = 0;
-  }
-  static unsigned long printTimepoint = millis();
-  if (millis() - printTimepoint > 800U)
-  {
-    printTimepoint = millis();
-    for (copyIndex = 0; copyIndex < SCOUNT; copyIndex++)
-      analogBufferTemp[copyIndex] = analogBuffer[copyIndex];
-    averageVoltage = ft_getMedianNum(analogBufferTemp, SCOUNT) * (float)VREF / 1024.0; // read the analog value more stable by the median filtering algorithm, and convert to voltage value
-    float compensationCoefficient = 1.0 + 0.02 * (temperature - 25.0); //temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.02*(fTP-25.0));
-    float compensationVolatge = averageVoltage / compensationCoefficient; //temperature compensation
-    tdsValue = (133.42 * compensationVolatge * compensationVolatge * compensationVolatge - 255.86 * compensationVolatge * compensationVolatge + 857.39 * compensationVolatge) * 0.5; //convert voltage value to tds value
-    //Serial.print("voltage:");
-    //Serial.print(averageVoltage,2);
-    //Serial.print("V   ");
-    Serial.print("TDS Value:");
-    Serial.print(tdsValue, 0);
-    Serial.println("ppm");
-  }
+  sensorValue = analogRead(sensorPin_tds);
+  Voltage = sensorValue * 5 / 1024.0; //Convert analog reading to Voltage
+  tdsValue = (133.42 / Voltage * Voltage * Voltage - 255.86 * Voltage * Voltage + 857.39 * Voltage) * 0.5; //Convert voltage value to TDS value
+  //  SERIAL.print("TDS Value = ");
+  //  SERIAL.print(tdsValue);
+  //  SERIAL.println(" ppm");
 }
 
 int ft_getMedianNum(int bArray[], int iFilterLen)
