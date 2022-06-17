@@ -8,9 +8,9 @@ String position_y = "-98.460370";
 String Comunity_or_institution  = "EL_salto_GDL_MEX"; // maximo 20 caracteres, sin espacios
 
 // El timpo es de 0 - 24
-int time_start = 14;
-int time_send_1 = 3;
-int time_send_2 = 8;
+int time_start = 16;
+int time_send_1 = 12;
+int time_send_2 = 24;
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -55,14 +55,6 @@ int sensorValue_turviedad = 0;
 float voltage_turviedad = 0.0;
 
 // -> TDS
-//#define TdsSensorPin A2
-//#define VREF 5.0      // analog reference voltage(Volt) of the ADC
-//#define SCOUNT  30           // sum of sample point
-//int analogBuffer[SCOUNT];    // store the analog value in the array, read from ADC
-//int analogBufferTemp[SCOUNT];
-//int analogBufferIndex = 0, copyIndex = 0;
-//float averageVoltage = 0, tdsValue = 0, temperature = 25;
-//#define SERIAL Serial
 #define sensorPin_tds A0
 
 int sensorValue = 0;
@@ -94,6 +86,7 @@ void setup(void)
     Serial.println("Starting LoRa failed!");
     while (1);
   }
+  LoRa.setSyncWord(0xF3);
 
   pinMode(LED, OUTPUT);
   //  pinMode(TdsSensorPin, INPUT);
@@ -103,42 +96,19 @@ void setup(void)
 
 void loop(void)
 {
-  ft_time();
+  //  ft_time();
   ft_get_water_temperature();
   ft_get_turviedad();
   ft_get_ph();
   ft_get_tds();
   ft_send_data();
   ft_time();
-  if (on_start == false)
-  {
-    on_start = true;
-    LowPower.sleep(10000);
-  } else {
-    delay(10000);
-  }
   //  LowPower.sleep(10000);
-  //  delay(10000);
+  delay(45000);
 }
 // --- Time
 void ft_time()
 {
-  //  unsigned long myTime;
-  //  unsigned long oldTime;
-  //  unsigned long sleep_time;
-  //  int horaTime;
-  //  int hora;
-  //  int minutos;
-  //  int segundos;
-  //
-  //  long day_ms = 86400000; // 86400000 milliseconds in a day
-  //  long hour_ms = 3600000; // 3600000 milliseconds in an hour
-  //  long minute_ms = 60000; // 60000 milliseconds in a minute
-  //  long second_ms =  1000;
-
-  //  int time_start = 14;
-  //  int time_send_1 = 12;
-  //  int time_send_2 = 24;
 
   myTime = millis();
 
@@ -152,18 +122,12 @@ void ft_time()
   if (horaTime >= 24) horaTime = 0;
 
 
-  sleep_time = ft_get_sleep_time()  - (2 * second_ms);
+  //  sleep_time = ft_get_sleep_time()  - (2 * second_ms);
+  sleep_time = ft_get_sleep_time();
 
   Serial.println();
-  Serial.print("--> Timepo : ");
-  Serial.print(time_send_2 - time_send_1);
-  Serial.print(" H, ");
+  Serial.print("----> Timepo : ");
   Serial.print(sleep_time);
-  Serial.print(" ms, ");
-  Serial.print(seconds);
-  Serial.print(" s, ");
-  Serial.print(minutes);
-  Serial.print(" minutes.");
   Serial.println();
 }
 
@@ -174,12 +138,12 @@ int ft_get_sleep_time()
     if (time_start <= time_send_1)
     {
       time_status = 1;
-      return (ft_hour_in_ms(time_start - time_send_1));
+      return (ft_hour_in_ms(time_send_1 - time_start));
     }
     if (time_start <= time_send_2)
     {
       time_status = 2;
-      return (ft_hour_in_ms(time_start - time_send_2));
+      return (ft_hour_in_ms(time_send_2 - time_start));
     }
     if (time_start > time_send_2)
     {
@@ -190,7 +154,7 @@ int ft_get_sleep_time()
   else if (time_status == 1) //de 1 a 2
   {
     time_status = 2;
-    return (ft_hour_in_ms(time_start - time_send_2));
+    return (ft_hour_in_ms(time_send_2 - time_send_1));
   }
   else if (time_status == 2) //de 2 a 1
   {
@@ -209,12 +173,13 @@ void  ft_send_data()
 {
   //  char *space = ",";
   String space = ",";
+  String clean = "000";
   String send_values;
 
   pHValue = 7.77;
   tdsValue = 200;
   sensorValue_turviedad = 300;
-  temperature = 25.0;
+  temperature = 25.20;
 
   String value_pH = String(pHValue, 2);
   String value_TDS = String(tdsValue, 0);
@@ -240,11 +205,11 @@ void  ft_send_data()
   Serial.print(",");
   Serial.println(value_Water_Tem);
 
-  send_values = Name + space + position_x + space + position_y + space;
+  send_values = Name + space + Comunity_or_institution + space + position_x + space + position_y + space;
   send_values = send_values + value_pH + space;
   send_values = send_values + value_TDS + space;
   send_values = send_values + value_Turviedad + space;
-  send_values = send_values + value_Water_Tem + space;
+  send_values = send_values + value_Water_Tem + space + clean;
 
   Serial.print("--> send data: ");
   Serial.println(send_values);
