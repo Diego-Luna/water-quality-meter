@@ -2,7 +2,7 @@
 // Modificar
 // Modify
 
-String Name  = "Test_Arduino_white_3"; // maximo 20 caracteres, sin espacios
+String Name  = "Test_Arduino_white"; // maximo 20 caracteres, sin espacios
 String position_x = "19.707085";
 String position_y = "-98.460370";
 String Comunity_or_institution  = "MoonMakers"; // maximo 20 caracteres, sin espacios
@@ -41,7 +41,7 @@ byte time_status = 0;
 
 // -> pH
 #define SensorPin_ph A0            //pH meter Analog output to Arduino Analog Input 0
-#define Offset -3.60            //deviation compensate
+#define Offset 0.00            //deviation compensate //black -3.60 // white 
 #define LED 13
 #define samplingInterval 20
 #define printInterval 800
@@ -104,7 +104,7 @@ void loop(void)
   ft_send_data();
   ft_time();
 //  delay(60000);
-  delay(10000);
+  delay(12000);
 }
 // --- Time
 void ft_time()
