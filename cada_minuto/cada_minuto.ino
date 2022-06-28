@@ -2,15 +2,15 @@
 // Modificar
 // Modify
 
-String Name  = "Test_Arduino_white"; // maximo 20 caracteres, sin espacios
-String position_x = "19.707085";
-String position_y = "-98.460370";
-String Comunity_or_institution  = "MoonMakers"; // maximo 20 caracteres, sin espacios
+String Nombre  = "Test_Arduino_white"; // maximo 20 caracteres, sin espacios
+String posicion_x = "19.707085";
+String posicion_y = "-98.460370";
+String Comunidad_o_institucion  = "MoonMakers"; // maximo 20 caracteres, sin espacios
 
 // El timpo es de 0 - 24
-int time_start = 16;
-int time_send_1 = 12;
-int time_send_2 = 24;
+int hora_de_instalacion = 16;
+int hora_de_medicion_1 = 12;
+int hora_de_medicion_2 = 24;
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -91,7 +91,7 @@ void setup(void)
   pinMode(LED, OUTPUT);
   //  pinMode(TdsSensorPin, INPUT);
   sensors.begin();
-  horaTime = time_start;
+  horaTime = hora_de_instalacion;
 }
 
 void loop(void)
@@ -135,31 +135,31 @@ int ft_get_sleep_time()
 {
   if (time_status == 0)
   {
-    if (time_start <= time_send_1)
+    if (hora_de_instalacion <= hora_de_medicion_1)
     {
       time_status = 1;
-      return (ft_hour_in_ms(time_send_1 - time_start));
+      return (ft_hour_in_ms(hora_de_medicion_1 - hora_de_instalacion));
     }
-    if (time_start <= time_send_2)
+    if (hora_de_instalacion <= hora_de_medicion_2)
     {
       time_status = 2;
-      return (ft_hour_in_ms(time_send_2 - time_start));
+      return (ft_hour_in_ms(hora_de_medicion_2 - hora_de_instalacion));
     }
-    if (time_start > time_send_2)
+    if (hora_de_instalacion > hora_de_medicion_2)
     {
       time_status = 1;
-      return (ft_hour_in_ms((24 - time_start) + time_send_1));
+      return (ft_hour_in_ms((24 - hora_de_instalacion) + hora_de_medicion_1));
     }
   }
   else if (time_status == 1) //de 1 a 2
   {
     time_status = 2;
-    return (ft_hour_in_ms(time_send_2 - time_send_1));
+    return (ft_hour_in_ms(hora_de_medicion_2 - hora_de_medicion_1));
   }
   else if (time_status == 2) //de 2 a 1
   {
     time_status = 1;
-    return (ft_hour_in_ms((24 - time_send_2) + time_send_1));
+    return (ft_hour_in_ms((24 - hora_de_medicion_2) + hora_de_medicion_1));
   }
 }
 
@@ -206,7 +206,7 @@ void  ft_send_data()
   Serial.print(",");
   Serial.println(value_Water_Tem);
 
-  send_values = Name + space + Comunity_or_institution + space + position_x + space + position_y + space;
+  send_values = Nombre + space + Comunidad_o_institucion + space + posicion_x + space + posicion_y + space;
   send_values = send_values + value_pH + space;
   send_values = send_values + value_TDS + space;
   send_values = send_values + value_Turviedad + space;
