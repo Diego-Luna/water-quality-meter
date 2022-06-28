@@ -14,7 +14,7 @@ int hora_de_medicion_2 = 24;
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // Calibracion
-
+#define Offset 0.00            //deviation compensate
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #include "ArduinoLowPower.h"
@@ -22,6 +22,8 @@ int hora_de_medicion_2 = 24;
 // -> Lora
 #include <SPI.h>
 #include <LoRa.h>
+
+int pit_transistor = 1;
 
 // -> Hora
 
@@ -44,7 +46,7 @@ byte time_status = 0;
 
 // -> pH
 #define SensorPin_ph A0            //pH meter Analog output to Arduino Analog Input 0
-#define Offset 0.00            //deviation compensate
+//#define Offset 0.00            //deviation compensate
 #define LED 13
 #define samplingInterval 20
 #define printInterval 800
@@ -91,8 +93,12 @@ void setup(void)
   }
   LoRa.setSyncWord(0xF3);
 
+  pinMode(pit_transistor, OUTPUT);
+
+  ft_apagar_sensores(true);
   pinMode(LED, OUTPUT);
   //  pinMode(TdsSensorPin, INPUT);
+
   sensors.begin();
   horaTime = hora_de_instalacion;
 }
@@ -100,14 +106,16 @@ void setup(void)
 void loop(void)
 {
   //  ft_time();
+  ft_apagar_sensores(true);
   ft_get_water_temperature();
   ft_get_turviedad();
   ft_get_ph();
   ft_get_tds();
   ft_send_data();
   ft_time();
-  //  LowPower.sleep(10000);
-  delay(45000);
+  ft_apagar_sensores(false);
+  LowPower.sleep(sleep_time);
+  //  delay(45000);
 }
 // --- Time
 void ft_time()
@@ -171,6 +179,17 @@ int ft_hour_in_ms(int myHour) {
 }
 
 // --- Lora
+
+void ft_apagar_sensores(bool estado)
+{
+  if (estado == true) {
+    digitalWrite(pit_transistor, HIGH);
+  }
+  else
+  {
+    digitalWrite(pit_transistor, LOW);
+  }
+}
 
 void  ft_send_data()
 {
