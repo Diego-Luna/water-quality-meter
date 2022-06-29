@@ -94,6 +94,7 @@ void setup(void)
   LoRa.setSyncWord(0xF3);
 
   pinMode(pit_transistor, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
 
   ft_apagar_sensores(true);
   pinMode(LED, OUTPUT);
@@ -107,6 +108,7 @@ void loop(void)
 {
   //  ft_time();
   ft_apagar_sensores(true);
+  delay(1000);
   ft_get_water_temperature();
   ft_get_turviedad();
   ft_get_ph();
@@ -183,10 +185,12 @@ int ft_hour_in_ms(int myHour) {
 void ft_apagar_sensores(bool estado)
 {
   if (estado == true) {
+    digitalWrite(LED_BUILTIN, HIGH);
     digitalWrite(pit_transistor, HIGH);
   }
   else
   {
+    digitalWrite(LED_BUILTIN, LOW);
     digitalWrite(pit_transistor, LOW);
   }
 }
