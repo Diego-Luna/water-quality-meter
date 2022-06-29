@@ -205,7 +205,8 @@ void  ft_send_data()
 
   String value_pH = String(pHValue, 2);
   String value_TDS = String(tdsValue, 0);
-  String value_Turviedad = String(sensorValue_turviedad);
+  //  String value_Turviedad = String(sensorValue_turviedad);
+  String value_Turviedad = String((voltage_turviedad - 5) > 0 ? (voltage_turviedad - 5) : -1 * (voltage_turviedad - 5) );
   String value_Water_Tem = String(temperature, 2);
 
   Serial.println();
