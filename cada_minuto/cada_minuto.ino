@@ -2,7 +2,7 @@
 // Modificar
 // Modify
 
-String Nombre  = "Test_Arduino_white"; // maximo 20 caracteres, sin espacios
+String Nombre  = "sonda_2"; // maximo 20 caracteres, sin espacios
 String posicion_x = "19.707085";
 String posicion_y = "-98.460370";
 String Comunidad_o_institucion  = "MoonMakers"; // maximo 20 caracteres, sin espacios
@@ -19,6 +19,8 @@ int hora_de_medicion_2 = 24;
 // -> Lora
 #include <SPI.h>
 #include <LoRa.h>
+
+int pit_transistor = 0;
 
 // -> Hora
 
@@ -61,8 +63,6 @@ int sensorValue = 0;
 float tdsValue = 0;
 float Voltage = 0;
 
-
-
 // -> Water temperature
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -88,8 +88,12 @@ void setup(void)
   }
   LoRa.setSyncWord(0xF3);
 
-  pinMode(LED, OUTPUT);
   //  pinMode(TdsSensorPin, INPUT);
+  pinMode(pit_transistor, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  ft_apagar_sensores(true);
+  pinMode(LED, OUTPUT);
+
   sensors.begin();
   horaTime = hora_de_instalacion;
 }
@@ -97,14 +101,18 @@ void setup(void)
 void loop(void)
 {
   //  ft_time();
+  ft_apagar_sensores(true);
+  delay(1000);
   ft_get_water_temperature();
   ft_get_turviedad();
   ft_get_ph();
   ft_get_tds();
   ft_send_data();
   ft_time();
-//  delay(60000);
-  delay(12000);
+  //  delay(60000);
+  delay(20000);
+  ft_apagar_sensores(false);
+  delay(1000);
 }
 // --- Time
 void ft_time()
@@ -169,6 +177,19 @@ int ft_hour_in_ms(int myHour) {
 
 // --- Lora
 
+void ft_apagar_sensores(bool estado)
+{
+  if (estado == true) {
+    digitalWrite(LED_BUILTIN, HIGH);
+    digitalWrite(pit_transistor, HIGH);
+  }
+  else
+  {
+    digitalWrite(LED_BUILTIN, LOW);
+    digitalWrite(pit_transistor, LOW);
+  }
+}
+
 void  ft_send_data()
 {
   //  char *space = ",";
@@ -176,15 +197,15 @@ void  ft_send_data()
   String clean = "000";
   String send_values;
 
-//  pHValue = 7.77;
-//  tdsValue = 200;
-//  sensorValue_turviedad = 300;
-//  temperature = 25.20;
+  //  pHValue = 7.77;
+  //  tdsValue = 200;
+  //    sensorValue_turviedad = 300;
+  //  temperature = 25.20;
 
   String value_pH = String(pHValue, 2);
-  String value_TDS = String(tdsValue, 0);
-//  String value_Turviedad = String(sensorValue_turviedad);voltage_turviedad
-  String value_Turviedad = String(voltage_turviedad);
+  String value_TDS = String(tdsValue, 2);
+  //  String value_Turviedad = String(sensorValue_turviedad);voltage_turviedad
+  String value_Turviedad = String((voltage_turviedad - 5) > 0 ? (voltage_turviedad - 5) : -1 * (voltage_turviedad - 5) );
   String value_Water_Tem = String(temperature, 2);
 
   Serial.println();
@@ -193,7 +214,7 @@ void  ft_send_data()
   Serial.print(",");
   Serial.print(tdsValue);
   Serial.print(",");
-  Serial.print(sensorValue_turviedad);
+  Serial.print(voltage_turviedad);
   Serial.print(",");
   Serial.println(temperature);
 
