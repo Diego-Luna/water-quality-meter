@@ -2,19 +2,19 @@
 // Modificar
 // Modify
 
-String Nombre  = "Diego_Test_1"; // maximo 20 caracteres, sin espacios
+String Nombre  = "Diego_test"; // maximo 20 caracteres, sin espacios
 String posicion_x = "19.707085";
-String posicion_y = "-98.460370";
-String Comunidad_o_institucion  = "EL_salto_GDL_MEX"; // maximo 20 caracteres, sin espacios
+String posicion_y = "-98.46037";
+String Comunidad_o_institucion  = "MoonMakers"; // maximo 20 caracteres, sin espacios
 
 // El timpo es de 0 - 24
-int hora_de_instalacion = 16;
+int hora_de_instalacion = 14;
 int hora_de_medicion_1 = 12;
 int hora_de_medicion_2 = 24;
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // Calibracion
-#define Offset 0.00            //deviation compensate
+#define Offset -4.00            //deviation compensate
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #include "ArduinoLowPower.h"
@@ -23,7 +23,7 @@ int hora_de_medicion_2 = 24;
 #include <SPI.h>
 #include <LoRa.h>
 
-int pit_transistor = 1;
+int pit_transistor = 0;
 
 // -> Hora
 
@@ -60,12 +60,11 @@ int sensorValue_turviedad = 0;
 float voltage_turviedad = 0.0;
 
 // -> TDS
-#define sensorPin_tds A0
+#define sensorPin_tds A1
 
 int sensorValue = 0;
 float tdsValue = 0;
 float Voltage = 0;
-
 
 
 // -> Water temperature
@@ -84,11 +83,11 @@ DallasTemperature sensors(&oneWire);
 void setup(void)
 {
 
-  Serial.begin(9600);
-  Serial.println("LoRa Sender - water quality meter");
+  // Serial..begin(9600);
+  // Serial..println("LoRa Sender - water quality meter");
 
   if (!LoRa.begin(915E6)) {
-    Serial.println("Starting LoRa failed!");
+    // Serial..println("Starting LoRa failed!");
     while (1);
   }
   LoRa.setSyncWord(0xF3);
@@ -102,6 +101,27 @@ void setup(void)
 
   sensors.begin();
   horaTime = hora_de_instalacion;
+
+  pinMode(A3, INPUT_PULLUP);
+  pinMode(A4, INPUT_PULLUP);
+  pinMode(A5, INPUT_PULLUP);
+  pinMode(A6, INPUT_PULLUP);
+
+  pinMode(1, INPUT_PULLUP);
+  pinMode(3, INPUT_PULLUP);
+  pinMode(4, INPUT_PULLUP);
+  pinMode(5, INPUT_PULLUP);
+  pinMode(6, INPUT_PULLUP);
+  pinMode(7, INPUT_PULLUP);
+  pinMode(8, INPUT_PULLUP);
+  pinMode(9, INPUT_PULLUP);
+  pinMode(10, INPUT_PULLUP);
+  pinMode(11, INPUT_PULLUP);
+  pinMode(12, INPUT_PULLUP);
+  pinMode(13, INPUT_PULLUP);
+  pinMode(14, INPUT_PULLUP);
+
+  USBDevice.detach();
 }
 
 void loop(void)
@@ -111,12 +131,16 @@ void loop(void)
   delay(1000);
   ft_get_water_temperature();
   ft_get_turviedad();
-  ft_get_ph();
+  for (int i = 0; i <= 10; i++) {
+    ft_get_ph();
+    delay(10);
+  }
   ft_get_tds();
   ft_send_data();
   ft_time();
   ft_apagar_sensores(false);
   LowPower.sleep(sleep_time);
+  //  LowPower.sleep(900000);
   //  delay(45000);
 }
 // --- Time
@@ -138,10 +162,10 @@ void ft_time()
   //  sleep_time = ft_get_sleep_time()  - (2 * second_ms);
   sleep_time = ft_get_sleep_time();
 
-  Serial.println();
-  Serial.print("----> Timepo : ");
-  Serial.print(sleep_time);
-  Serial.println();
+  // Serial..println();
+  // Serial..print("----> Timepo : ");
+  // Serial..print(sleep_time);
+  // Serial..println();
 }
 
 int ft_get_sleep_time()
@@ -202,35 +226,41 @@ void  ft_send_data()
   String clean = "000";
   String send_values;
 
-  pHValue = 7.77;
-  tdsValue = 200;
-  sensorValue_turviedad = 300;
-  temperature = 25.20;
+  //  pHValue = 7.77;
+  //  tdsValue = 200;
+  //  sensorValue_turviedad = 300;
+  //  temperature = 25.20;
+  //  voltage_turviedad = 0;
+
+  if (!pHValue) pHValue = 0.0;
+  if (!tdsValue) tdsValue = 0.0;
+  if (!voltage_turviedad) voltage_turviedad = 0.0;
+  if (!temperature) temperature = 0.0;
 
   String value_pH = String(pHValue, 2);
-  String value_TDS = String(tdsValue, 0);
+  String value_TDS = String(tdsValue, 2);
   //  String value_Turviedad = String(sensorValue_turviedad);
   String value_Turviedad = String((voltage_turviedad - 5) > 0 ? (voltage_turviedad - 5) : -1 * (voltage_turviedad - 5) );
   String value_Water_Tem = String(temperature, 2);
 
-  Serial.println();
-  Serial.print("->       data: ");
-  Serial.print(pHValue);
-  Serial.print(",");
-  Serial.print(tdsValue);
-  Serial.print(",");
-  Serial.print(sensorValue_turviedad);
-  Serial.print(",");
-  Serial.println(temperature);
+  // Serial..println();
+  // Serial..print("->       data: ");
+  // Serial..print(pHValue);
+  // Serial..print(",");
+  // Serial..print(tdsValue);
+  // Serial..print(",");
+  // Serial..print(sensorValue_turviedad);
+  // Serial..print(",");
+  // Serial..println(temperature);
 
-  Serial.print("-> sting data: ");
-  Serial.print(value_pH);
-  Serial.print(",");
-  Serial.print(value_TDS);
-  Serial.print(",");
-  Serial.print(value_Turviedad);
-  Serial.print(",");
-  Serial.println(value_Water_Tem);
+  // Serial..print("-> sting data: ");
+  // Serial..print(value_pH);
+  // Serial..print(",");
+  // Serial..print(value_TDS);
+  // Serial..print(",");
+  // Serial..print(value_Turviedad);
+  // Serial..print(",");
+  // Serial..println(value_Water_Tem);
 
   send_values = Nombre + space + Comunidad_o_institucion + space + posicion_x + space + posicion_y + space;
   send_values = send_values + value_pH + space;
@@ -238,8 +268,8 @@ void  ft_send_data()
   send_values = send_values + value_Turviedad + space;
   send_values = send_values + value_Water_Tem + space + clean;
 
-  Serial.print("--> send data: ");
-  Serial.println(send_values);
+  // Serial..print("--> send data: ");
+  // Serial..println(send_values);
 
   //  -- Send lora
   LoRa.beginPacket();
@@ -251,13 +281,13 @@ void  ft_send_data()
 // --- Water temperature - DS18B20
 void ft_get_water_temperature()
 {
-  Serial.print(" Requesting temperatures...");
+  // Serial..print(" Requesting temperatures...");
   sensors.requestTemperatures(); // Send the command to get temperature readings
-  Serial.println("DONE");
+  // Serial..println("DONE");
   /********************************************************************/
-  Serial.print("Temperature is: ");
+  // Serial..print("Temperature is: ");
   temperature = sensors.getTempCByIndex(0);
-  Serial.print(sensors.getTempCByIndex(0)); // Why "byIndex"?
+  // Serial..print(sensors.getTempCByIndex(0)); // Why "byIndex"?
   // You can have more than one DS18B20 on the same bus.
   // 0 refers to the first IC on the wire
 }
@@ -322,10 +352,10 @@ void  ft_get_ph()
   }
   if (millis() - printTime > printInterval)  //Every 800 milliseconds, print a numerical, convert the state of the LED indicator
   {
-    Serial.print("Voltage:");
-    Serial.print(voltage, 2);
-    Serial.print("    pH value: ");
-    Serial.println(pHValue, 2);
+    // Serial..print("Voltage:");
+    // Serial..print(voltage, 2);
+    // Serial..print("    pH value: ");
+    // Serial..println(pHValue, 2);
     digitalWrite(LED, digitalRead(LED) ^ 1);
     printTime = millis();
   }
@@ -338,7 +368,7 @@ double ft_avergearray(int* arr, int number)
   double avg;
   long amount = 0;
   if (number <= 0) {
-    Serial.println("Error number for the array to avraging!/n");
+    // Serial..println("Error number for the array to avraging!/n");
     return 0;
   }
   if (number < 5) { //less than 5, calculated directly statistics
