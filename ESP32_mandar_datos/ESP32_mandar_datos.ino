@@ -2,13 +2,14 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-const char* ssid = "nombre_wifi";
+const char* ssid = "Wifi";
 const char* password = "contrasena";
 
 String serverName = "http://acercamientos-al-agua.uc.r.appspot.com/create-sensor/";
 
-unsigned long lastTime = 0;
-unsigned long timerDelay = 25000;
+unsigned long myTime;
+unsigned long myTime_old = 0;
+bool led_status = false;
 
 
 // lora
@@ -20,11 +21,14 @@ unsigned long timerDelay = 25000;
 #define rst 5
 #define dio0 26
 
+bool Error_wifi = false;
+
 void setup() {
+
+  pinMode(LED_BUILTIN, OUTPUT);
   //initialize Serial Monitor
-  Serial.begin(9600);
-  //  while (!Serial);
-  Serial.println("LoRa Receiver");
+  // Serial.begin(9600);
+  // Serial.println("LoRa Receiver");
 
   //setup LoRa transceiver module
   LoRa.setPins(ss, rst, dio0);
@@ -34,46 +38,64 @@ void setup() {
   //866E6 for Europe
   //915E6 for North America
   while (!LoRa.begin(915E6)) {
-    Serial.println(".");
+    // Serial.println(".");
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(500);
+    digitalWrite(LED_BUILTIN, HIGH);
     delay(500);
   }
   // Change sync word (0xF3) to match the receiver
   // The sync word assures you don't get LoRa messages from other LoRa transceivers
   // ranges from 0-0xFF
   LoRa.setSyncWord(0xF3);
-  Serial.println("LoRa Initializing OK!");
+  // Serial.println("LoRa Initializing OK!");
 
   //  Wifi
   WiFi.begin(ssid, password);
-  Serial.println("Connecting");
+  // Serial.println("Connecting");
   while (WiFi.status() != WL_CONNECTED) {
+    digitalWrite(LED_BUILTIN, LOW);
     delay(500);
-    Serial.print(".");
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+    // Serial.print(".");
   }
-  Serial.println("");
-  Serial.print("Connected to WiFi network with IP Address: ");
-  Serial.println(WiFi.localIP());
+  // Serial.println("");
+  // Serial.print("Connected to WiFi network with IP Address: ");
+  // Serial.println(WiFi.localIP());
 
-  Serial.println("Timer set to 5 seconds (timerDelay variable), it will take 5 seconds before publishing the first reading.");
+  // Serial.println("Timer set to 5 seconds (timerDelay variable), it will take 5 seconds before publishing the first reading.");
+
+  digitalWrite(LED_BUILTIN, LOW);
 }
 
 void loop() {
   // try to parse packet
   int packetSize = LoRa.parsePacket();
+
+  myTime = millis();
+  if (Error_wifi == false && myTime >= (500 + myTime_old)) {
+    digitalWrite(LED_BUILTIN, (led_status == true) ? HIGH : LOW);
+    myTime_old = myTime;
+    led_status = !led_status;
+  } else if (myTime < myTime_old) {
+    myTime_old = myTime;
+  }
+
   if (packetSize) {
     // received a packet
-    Serial.print("Received packet '");
+    // Serial.print("Received packet '");
 
     // read packet
     while (LoRa.available()) {
       String LoRaData = LoRa.readString();
-      Serial.print(LoRaData);
+      // Serial.print(LoRaData);
       send_to_internet(serverName + LoRaData);
     }
 
     // print RSSI of packet
-    Serial.print("' with RSSI ");
-    Serial.println(LoRa.packetRssi());
+    // Serial.print("' with RSSI ");
+    // Serial.println(LoRa.packetRssi());
   }
 }
 
@@ -83,29 +105,32 @@ void send_to_internet(String lora_string)
     HTTPClient http;
 
 
-    Serial.println();
-    Serial.print(lora_string);
-    Serial.println();
+    // Serial.println();
+    // Serial.print(lora_string);
+    // Serial.println();
 
-    http.begin(lora_string);
+    http.begin(lora_string.c_str());
 
     // Send HTTP GET request
     int httpResponseCode = http.GET();
 
     if (httpResponseCode > 0) {
-      Serial.print("HTTP Response code: ");
-      Serial.println(httpResponseCode);
+      // Serial.print("HTTP Response code: ");
+      // Serial.println(httpResponseCode);
       String payload = http.getString();
-      Serial.println(payload);
+      // Serial.println(payload);
     }
     else {
-      Serial.print("Error code: ");
-      Serial.println(httpResponseCode);
+      // Serial.print("Error code: ");
+      // Serial.println(httpResponseCode);
     }
     // Free resources
     http.end();
+    digitalWrite(LED_BUILTIN, LOW);
   }
   else {
-    Serial.println("WiFi Disconnected");
+    // Serial.println("WiFi Disconnected");
+    Error_wifi = true;
+    digitalWrite(LED_BUILTIN, HIGH);
   }
 }
