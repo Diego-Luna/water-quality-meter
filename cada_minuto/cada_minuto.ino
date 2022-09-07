@@ -87,6 +87,8 @@ void setup(void)
     while (1);
   }
   LoRa.setSyncWord(0xF3);
+  LoRa.setSpreadingFactor(12);
+  LoRa.setTxPower(20);
 
   //  pinMode(TdsSensorPin, INPUT);
   pinMode(pit_transistor, OUTPUT);

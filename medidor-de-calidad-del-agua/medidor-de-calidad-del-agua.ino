@@ -2,7 +2,7 @@
 // Modificar
 // Modify
 
-String Nombre  = "Diego_test"; // maximo 20 caracteres, sin espacios
+String Nombre  = "Diego_test2"; // maximo 20 caracteres, sin espacios
 String posicion_x = "19.707085";
 String posicion_y = "-98.46037";
 String Comunidad_o_institucion  = "MoonMakers"; // maximo 20 caracteres, sin espacios
@@ -83,14 +83,16 @@ DallasTemperature sensors(&oneWire);
 void setup(void)
 {
 
-  // Serial..begin(9600);
-  // Serial..println("LoRa Sender - water quality meter");
+  Serial.begin(9600);
+  Serial.println("LoRa Sender - water quality meter");
 
   if (!LoRa.begin(915E6)) {
     // Serial..println("Starting LoRa failed!");
     while (1);
   }
   LoRa.setSyncWord(0xF3);
+  LoRa.setSpreadingFactor(12);
+  LoRa.setTxPower(20);
 
   pinMode(pit_transistor, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -121,7 +123,7 @@ void setup(void)
   pinMode(13, INPUT_PULLUP);
   pinMode(14, INPUT_PULLUP);
 
-  USBDevice.detach();
+  //  USBDevice.detach();
 }
 
 void loop(void)
@@ -140,8 +142,7 @@ void loop(void)
   ft_time();
   ft_apagar_sensores(false);
   LowPower.sleep(sleep_time);
-  //  LowPower.sleep(900000);
-  //  delay(45000);
+  delay(45000);
 }
 // --- Time
 void ft_time()
@@ -226,11 +227,11 @@ void  ft_send_data()
   String clean = "000";
   String send_values;
 
-  //  pHValue = 7.77;
-  //  tdsValue = 200;
-  //  sensorValue_turviedad = 300;
-  //  temperature = 25.20;
-  //  voltage_turviedad = 0;
+  pHValue = 7.77;
+  tdsValue = 200;
+  sensorValue_turviedad = 300;
+  temperature = 25.20;
+  voltage_turviedad = 0;
 
   if (!pHValue) pHValue = 0.0;
   if (!tdsValue) tdsValue = 0.0;

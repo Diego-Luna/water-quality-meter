@@ -2,8 +2,8 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-const char* ssid = "Wifi";
-const char* password = "contrasena";
+const char* ssid = "INFINITUM4F18_2.4";
+const char* password = "EsnrA23be5";
 
 String serverName = "http://acercamientos-al-agua.uc.r.appspot.com/create-sensor/";
 
@@ -27,8 +27,8 @@ void setup() {
 
   pinMode(LED_BUILTIN, OUTPUT);
   //initialize Serial Monitor
-  // Serial.begin(9600);
-  // Serial.println("LoRa Receiver");
+  Serial.begin(9600);
+  Serial.println("LoRa Receiver");
 
   //setup LoRa transceiver module
   LoRa.setPins(ss, rst, dio0);
@@ -48,6 +48,7 @@ void setup() {
   // The sync word assures you don't get LoRa messages from other LoRa transceivers
   // ranges from 0-0xFF
   LoRa.setSyncWord(0xF3);
+  LoRa.setSpreadingFactor(12);
   // Serial.println("LoRa Initializing OK!");
 
   //  Wifi
@@ -60,11 +61,11 @@ void setup() {
     delay(500);
     // Serial.print(".");
   }
-  // Serial.println("");
-  // Serial.print("Connected to WiFi network with IP Address: ");
-  // Serial.println(WiFi.localIP());
+  Serial.println("");
+  Serial.print("Connected to WiFi network with IP Address: ");
+  Serial.println(WiFi.localIP());
 
-  // Serial.println("Timer set to 5 seconds (timerDelay variable), it will take 5 seconds before publishing the first reading.");
+  Serial.println("Timer set to 5 seconds (timerDelay variable), it will take 5 seconds before publishing the first reading.");
 
   digitalWrite(LED_BUILTIN, LOW);
 }
@@ -89,7 +90,7 @@ void loop() {
     // read packet
     while (LoRa.available()) {
       String LoRaData = LoRa.readString();
-      // Serial.print(LoRaData);
+      Serial.println(LoRaData);
       send_to_internet(serverName + LoRaData);
     }
 
@@ -118,7 +119,7 @@ void send_to_internet(String lora_string)
       // Serial.print("HTTP Response code: ");
       // Serial.println(httpResponseCode);
       String payload = http.getString();
-      // Serial.println(payload);
+      Serial.println(payload);
     }
     else {
       // Serial.print("Error code: ");
